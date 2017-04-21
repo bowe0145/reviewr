@@ -20,13 +20,11 @@
 var currentReview;
 
 var _helpers = _helpers || {};
-
 _helpers.genId = function () {
   id = Math.floor((Math.random() * 99999999) + 1);
     
   return id;  
 };
-
 _helpers.isNullorEmpty = function (object) {
     if (!object || object == "") {
         return true;
@@ -42,8 +40,6 @@ _rating.container = document.getElementsByClassName('ratings');
 _rating.starAmount = 5;
 _rating.emptyIcon = ";&2606";
 _rating.fillIcon = ";&2605";
-
-
 _rating.init = function () {
     var starContainer = document.getElementById('add-stars');
     
@@ -54,7 +50,7 @@ _rating.init = function () {
         
         starContainer.appendChild(star);
         
-        star.addEventListener('click', function (index) {
+        star.addEventListener('touchend', function (index) {
             return function () {
                 var stars = starContainer.children;
                 for (var i = 0; i < stars.length; i++) {
@@ -69,7 +65,6 @@ _rating.init = function () {
         }(i + 1), false);
     }
 }
-
 _rating.draw = function (rating, element) {
     var container = element
     for (var i = 0; i < _rating.starAmount; i++) {
@@ -83,13 +78,9 @@ _rating.draw = function (rating, element) {
         container.appendChild(star);
     }
 }
-_rating.rate = function (rating) {
-    console.log("rating" + rating);
-};
 
 var _localStorage = _localStorage || {};
 _localStorage.key = "reviewr-bowe0145";
-
 _localStorage.save = function (item) {
     localStorage.setItem(_localStorage.key, JSON.stringify(item));
 };
@@ -130,17 +121,20 @@ _localStorage.saveReview = function (item) {
 };
 
 var _buttons = _buttons || {};
-_buttons.save = function () {
+_buttons.save = function (ev) {
+    ev.preventDefault();
     _page.saveReview();
     
     // Clean up
-    _buttons.cancel();
+    _buttons.cancel(ev);
     
     _page.home();
 };
-_buttons.cancel = function () {
-    // Create a click event
-    var clickEvt = new MouseEvent('touchend', {
+_buttons.cleanup = function (ev) {
+    // Reset form
+    ev.preventDefault();
+    
+    var clickEvt = new CustomEvent('touchend', {
         'view': window,
         'bubbles': true,
         'cancelable': true
@@ -149,46 +143,54 @@ _buttons.cancel = function () {
     // Clean the form
     var item = document.getElementById('add-item').value = "";
     var stars = document.getElementById('add-stars').children[0].dispatchEvent(clickEvt);
-    
-    // Check the xButton
-    if (this.id != 'add-x') {
-        var xButton = document.getElementById('add-x');
-    } else {
-        var xButton = this;
-    }
-    
-    // Click the xButton
-    xButton.dispatchEvent(clickEvt);
-};
-
-var onSuccess = function (imageData) {
     var image = document.getElementById('add-image');
-    image.src = imageData.FILE_URI;
-    img.classList.remove('inactive');
+    image.src = "";
+    image.classList.add('inactive');
 }
-
-var onFail = function (message) {
-    alert('Failed because: ' + message);
-}
-
-_buttons.picture = function () {
-    navigator.camera.getPicture(onSuccess, onFail, { quality: 25
+_buttons.cancel = function (ev) {
+    ev.preventDefault();
+    // Create a click event
+    var clickEvt = new CustomEvent('touchend', {
+        'view': window,
+        'bubbles': true,
+        'cancelable': true
     });
+
+    // Click the xButton
+    document.getElementById('add-x').dispatchEvent(clickEvt);
+};
+_buttons.picture = function (ev) {
+    ev.preventDefault();
+    var options = {
+        quality: 25,
+        targetHeight: 300,
+        targetWidth: 300,
+        destinationType: Camera.DestinationType.FILE_URI,
+        sourceType: Camera.PictureSourceType.CAMERA,
+        encodingType: Camera.EncodingType.PNG,
+        mediaType: Camera.MediaType.PICTURE,
+        allowEdit: true,
+        correctOrientation: true
+    };
+    navigator.camera.getPicture(function cameraSuccess(data) {
+        var image = document.getElementById('add-image');
+        console.log(data);
+        image.src = data;
+        image.dataset.url = data;
+        image.classList.remove('inactive');
+    }, function cameraError(error) {
+        console.debug("error: " + error);
+    }, options);
 };
 
 var _page = _page || {};
-
-_page.switch = function () {
-    
-};
-
 _page.home = function () {
     // Fill the list
     
     var allReviews = _localStorage.load();
     if (!_helpers.isNullorEmpty(allReviews)) {
         allReviews = allReviews.reviews;
-        var container = document.getElementsByClassName('home-list')[0];
+        var container = document.querySelector('.home-list');
         container.innerHTML = "";
         for (var i = 0; i < allReviews.length; i++) {
             //.home-list
@@ -201,43 +203,31 @@ _page.home = function () {
             var image = document.createElement('IMG');
             image.classList.add('media-object');
             image.classList.add('pull-left');
+            image.src = allReviews[i].img;
             var mainBody = document.createElement('DIV');
             mainBody.classList.add('media-body');
             var title = document.createElement('H4');
             var rating = document.createElement('DIV');
+            rating.classList.add('star-holder');
 
             _rating.draw(allReviews[i].rating, rating);
             title.textContent = allReviews[i].name;
             mainBody.appendChild(title);
             mainBody.appendChild(rating);
+            mainBody.appendChild(image);
             cell.appendChild(mainBody);
             container.appendChild(cell);
         }
     }
 };
-
-_page.addReview = function () {
-    var stars = document.getElementById('add-stars').children;
-    console.log(stars);
-    
-    for (var i = 0; i < stars.length ;i++ ) {
-        stars[i].addEventListener('click', function (index) {
-            return function () {
-             console.log(i);   
-            }
-        }(i), false);
-    }
-};
-
 _page.saveReview = function () {
-    console.log("Saving");
     var item = document.getElementById('add-item');
     var rating = document.getElementById('add-stars');
     var picture = document.getElementById('add-image');
-    if (!_helpers.isNullorEmpty(item) && !_helpers.isNullorEmpty(rating.dataset.rating)) {
+    if (!_helpers.isNullorEmpty(item) && !_helpers.isNullorEmpty(rating.dataset.rating) && !_helpers.isNullorEmpty(picture)) {
         // If item and rating aren't empty then continue
         
-        var tempItem = {"id": _helpers.genId(), "img": "kek", "name": item.value, "rating": rating.dataset.rating};
+        var tempItem = {"id": _helpers.genId(), "img": picture.dataset.url, "name": item.value, "rating": rating.dataset.rating};
         _localStorage.saveReview(tempItem);
     }
 };
@@ -246,10 +236,10 @@ var app = {
     // Application Constructor
     initialize: function() {
         document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
-        document.getElementById('add-save').addEventListener("click", _buttons.save);
-        document.getElementById('add-picture').addEventListener("click", _buttons.picture);
-        document.getElementById('add-cancel').addEventListener("click", _buttons.cancel);
-        document.getElementById('add-x').addEventListener("click", _buttons.cancel);
+        document.getElementById('add-save').addEventListener("touchend", _buttons.save);
+        document.getElementById('add-picture').addEventListener("touchend", _buttons.picture);
+        document.getElementById('add-cancel').addEventListener("touchend", _buttons.cancel);
+        document.getElementById('add-x').addEventListener("touchend", _buttons.cleanup);
         _rating.init();
     },
 

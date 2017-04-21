@@ -7,12 +7,12 @@
         "files": {}
     },
     "installed_plugins": {
-        "cordova-plugin-whitelist": {
-            "PACKAGE_NAME": "ca.edumedia.bowe0145.reviewr"
-        },
         "cordova-plugin-camera": {
             "CAMERA_USAGE_DESCRIPTION": "Image to Review",
             "PHOTOLIBRARY_USAGE_DESCRIPTION": " ",
+            "PACKAGE_NAME": "ca.edumedia.bowe0145.reviewr"
+        },
+        "cordova-plugin-whitelist": {
             "PACKAGE_NAME": "ca.edumedia.bowe0145.reviewr"
         }
     },

@@ -43,5 +43,34 @@
     width: 10rem;
 }
 .inactive {
-    display: none;
+    display: none !important;
+}
+.adding-image {
+    display: block;
+    width: 300px !important;
+    height: 300px !important;
+    margin: 10px auto;
+}
+img {
+    width: 100px;
+    height: 100px;
+}
+h4 {
+    line-height: 2;
+}
+.star-holder {
+    padding-top: 10px;
+}
+header {
+    margin-top: 1em;
+    margin-bottom: 2em;
+}
+.title {
+    margin-bottom:2em;
+}
+.content {
+    margin-top: 1em;
+}
+ul {
+    margin-top: 3em;
 }
